@@ -6,7 +6,6 @@ import sys  # Добавляем import sys
 
 def install_dependencies():
     """Installs required Python packages."""
-	print("Вызов install_dependencies...")  # Добавьте эту строку
     try:
         # Check if pip is available, and if not, try to bootstrap it.
         subprocess.run([sys.executable, "-m", "pip", "--version"], check=True, capture_output=True)
