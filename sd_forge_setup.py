@@ -1,7 +1,47 @@
 import os
 import subprocess
 import json
-import requests
+import sys  # Добавляем import sys
+
+
+def install_dependencies():
+    """Installs required Python packages."""
+    try:
+        # Check if pip is available, and if not, try to bootstrap it.
+        subprocess.run([sys.executable, "-m", "pip", "--version"], check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        print("pip is not available. Attempting to bootstrap it...")
+        try:
+            subprocess.run([sys.executable, "-m", "ensurepip", "--upgrade"], check=True)
+            print("pip has been bootstrapped.")
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to bootstrap pip: {e}")
+            sys.exit(1)
+
+    required_packages = [
+        "requests",
+        "aria2",
+        "httpx==0.24.1",  # Specific version
+        "insightface", #for ip adapter
+    ]
+    for package in required_packages:
+        try:
+            #Importing the module, if the module is not installed, then install it
+            __import__(package.split("==")[0])
+            print(f"Package {package} is installed")
+        except ImportError:
+            print(f"Package {package} not found. Installing...")
+            try:
+                subprocess.run([sys.executable, "-m", "pip", "install", package], check=True)
+                print(f"Package {package} installed successfully.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error installing {package}: {e}")
+                sys.exit(1)
+
+# Install dependencies before importing other modules
+install_dependencies()
+
+import requests  # Теперь эти import-ы будут работать
 from urllib.parse import urlparse
 
 # --- Constants (Do not change) ---
@@ -17,8 +57,8 @@ DEFAULT_CONFIG = {
     "forge_version": "",  # Leave blank for latest
     "use_google_drive": False, # Google Drive option removed
     "models": {
-        "Flux1_dev": False,
-        "Flux1_schnell": False,
+        "Flux1_dev": True,
+        "Flux1_schnell": True,
         "SDXL_1": False,
         "JuggernautXL_v8": False,
         "Pony_Diffusion_XL_v6": False,
@@ -260,11 +300,11 @@ def install_controlnet_models(root, config):
         download_file('https://huggingface.co/h94/IP-Adapter-FaceID/resolve/main/ip-adapter-faceid-plusv2_sd15.bin', controlnet_dir)
         download_file('https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus_sdxl_vit-h.safetensors', controlnet_dir)
         download_file('https://huggingface.co/h94/IP-Adapter-FaceID/resolve/main/ip-adapter-faceid_sdxl.bin', controlnet_dir)
-        try:
-            subprocess.run(["pip", "install", "insightface"], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error installing insightface: {e}")
-            exit(1)
+        # try:
+        #     subprocess.run(["pip", "install", "insightface"], check=True) # Moved to install_dependencies
+        # except subprocess.CalledProcessError as e:
+        #     print(f"Error installing insightface: {e}")
+        #     exit(1)
 
 
 def install_extensions_from_url(urls, extensions_dir):
@@ -382,11 +422,11 @@ def main():
 
 
     # --- 4. Downgrade httpx (if necessary) ---
-    try:
-        subprocess.run(["pip", "install", "httpx==0.24.1"], check=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Error downgrading httpx: {e}")
-        exit(1)
+    # try:
+    #     subprocess.run(["pip", "install", "httpx==0.24.1"], check=True) # Moved to install_dependencies
+    # except subprocess.CalledProcessError as e:
+    #     print(f"Error downgrading httpx: {e}")
+    #     exit(1)
 
 
     # --- 5. Download models ---
@@ -407,13 +447,3 @@ def main():
     # We don't launch here anymore.  The .bat file handles that.
     # subprocess.run(launch_args, cwd=forge_path, check=False)
     print("Setup/update complete.")
-
-
-if __name__ == "__main__":
-    # Install aria2 (if not already installed) - pyngrok is no longer needed
-    try:
-        subprocess.run(["pip", "install", "aria2"], check=True)
-    except subprocess.CalledProcessError as e:
-         print(f"Error installing aria2: {e}")
-         exit(1)
-    main()
