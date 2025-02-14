@@ -17,8 +17,8 @@ DEFAULT_CONFIG = {
     "forge_version": "",  # Leave blank for latest
     "use_google_drive": False, # Google Drive option removed
     "models": {
-        "Flux1_dev": True,
-        "Flux1_schnell": True,
+        "Flux1_dev": False,
+        "Flux1_schnell": False,
         "SDXL_1": False,
         "JuggernautXL_v8": False,
         "Pony_Diffusion_XL_v6": False,
